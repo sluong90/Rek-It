@@ -16,17 +16,16 @@ AWS.config.update({
 
 const rekognition = new AWS.Rekognition();
 const s3 = new AWS.S3();
-const PORT = process.env.EXPRESS_CONTAINER_PORT;
-const collectid = process.env.AWS_COLLECTION_ID;
+const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080;
 
 const app = express();
-
-app.use("*/css", express.static(__dirname + "/public/css"));
+app.use(express.static(path.join(__dirname, "public")));
+app.use(bp.json());
 
 let params = {
-  CollectionId: collectid,
+  CollectionId: process.env.AWS_COLLECTION_ID,
   DetectionAttributes: [],
-  ExternalImageId: "Jennifer",
+  ExternalImageId: "CE1",
   Image: {
     S3Object: {
       Bucket: "jehaws",
@@ -36,7 +35,7 @@ let params = {
 };
 
 let searchParams = {
-  CollectionId: collectid,
+  CollectionId: process.env.AWS_COLLECTION_ID,
   Image: {
     S3Object: {
       Bucket: "jehaws",
@@ -57,15 +56,36 @@ rekognition.searchFacesByImage(searchParams, (err, data) => {
   if (err) {
     console.log(err, err.stack);
   } else {
-    console.log("search results", data.FaceMatches);
-    console.log("name", data.FaceMatches[0].Face.ExternalImageId);
+    console.log(data);
   }
 });
+const upload = multer({
+  storage: multer3({
+    s3: s3,
+    bucket: "jehaws",
+    acl: "public-read",
+    metadata: function(req, file, cb) {
+      cb(null, { fieldname: "TESTING METADATA!" });
+    },
+    key: function(req, file, cb) {
+      cb(null, Date.now().toString());
+    }
+  })
+});
+
+const singleUpload = upload.single("image");
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(__dirname + "/index.html");
+});
+
+app.post("/image", (req, res) => {
+  console.log("hello");
+  singleUpload(req, res, function(err) {
+    return res.json({ "image-url": req.file });
+  });
 });
 
 app.listen(PORT, () => {
-  console.log(`Listening on PORT  ${PORT}`);
+  console.log("Port is listening..");
 });
