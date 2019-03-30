@@ -22,6 +22,7 @@ const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(bp.json());
 
 let params = {
     CollectionId: "rekit-test",
@@ -66,6 +67,28 @@ let searchParams = {
     res.sendFile(__dirname + '/index.html')
    })
 
+const upload = multer({
+ storage: multer3({
+   s3: s3,
+   bucket: "rekit-test",
+   acl: "public-read",
+   metadata: function(req, file, cb) {
+     cb(null, { fieldname: "TESTING METADATA!" });
+   },
+   key: function(req, file, cb) {
+     cb(null, Date.now().toString());
+   }
+ })
+});
+
+const singleUpload = upload.single("image");
+
+app.post("/upload", (req, res) => {
+ console.log("hello");
+ singleUpload(req, res, function(err) {
+   return res.json({ "image-url": req.file });
+ });
+});
 
 
 
