@@ -7,6 +7,12 @@ const multer3 = require("multer-s3");
 const path = require("path");
 // const handlebars = require("handlebars");
 // const hbs = require("express-handlebars")
+const collectionimgs = [
+  { id: "chris2.jpg", name: "ChrisEvans" },
+  { id: "chrisH.jpg", name: "ChrisHemsworth" },
+  { id: "constance.jpg", name: "ConstanceWu" },
+  { id: "lucy.jpg", name: "LucyLiu" }
+];
 
 AWS.config.update({
   region: "us-west-2",
@@ -24,27 +30,55 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: false }));
 
-let params = {
-  CollectionId: process.env.AWS_COLLECTION_ID,
-  DetectionAttributes: [],
-  ExternalImageId: "Chris",
-  Image: {
-    S3Object: {
-      Bucket: "jehaws",
-      Name: "chris.jpg"
-    }
-  }
+const indexCollection = arr => {
+  arr.forEach(x => {
+    rekognition.indexFaces(
+      {
+        CollectionId: process.env.AWS_COLLECTION_ID,
+        DetectionAttributes: [],
+        ExternalImageId: x.name,
+        Image: {
+          S3Object: {
+            Bucket: "jehaws",
+            Name: x.id
+          }
+        }
+      },
+      (err, data) => {
+        if (err) {
+          console.log(err, err.stack); //error occurred;
+        } else {
+          console.log(x.name); //sucessfull response
+        }
+      }
+    );
+  });
 };
 
-let searchParams = {
-  CollectionId: process.env.AWS_COLLECTION_ID,
-  Image: {
-    S3Object: {
-      Bucket: "jehaws",
-      Name: "1554000853715"
-    }
-  }
-};
+indexCollection(collectionimgs);
+
+// let params = {
+//   CollectionId: process.env.AWS_COLLECTION_ID,
+//   DetectionAttributes: [],
+//   SimilarityThreshold: 0,
+//   ExternalImageId: "Chris",
+//   Image: {
+//     S3Object: {
+//       Bucket: "jehaws",
+//       Name: "chris.jpg"
+//     }
+//   }
+// };
+
+// let searchParams = {
+//   CollectionId: process.env.AWS_COLLECTION_ID,
+//   Image: {
+//     S3Object: {
+//       Bucket: "jehaws",
+//       Name: "1554000853715"
+//     }
+//   }
+// };
 
 const upload = multer({
   storage: multer3({
@@ -60,13 +94,13 @@ const upload = multer({
   })
 });
 
-rekognition.indexFaces(params, (err, data) => {
-  if (err) {
-    console.log(err, err.stack); //error occurred;
-  } else {
-    console.log(data.FaceRecords[0].FaceDetail.Pose); //sucessfull response
-  }
-});
+// rekognition.indexFaces(params, (err, data) => {
+//   if (err) {
+//     console.log(err, err.stack); //error occurred;
+//   } else {
+//     console.log(data.FaceRecords[0].FaceDetail.Pose); //sucessfull response
+//   }
+// });
 
 // rekognition.searchFacesByImage(searchParams, (err, data) => {
 //   if (err) {
@@ -99,6 +133,7 @@ app.get("/compare", (req, res) => {
   rekognition.searchFacesByImage(
     {
       CollectionId: process.env.AWS_COLLECTION_ID,
+      FaceMatchThreshold: 0,
       Image: {
         S3Object: {
           Bucket: "jehaws",
@@ -112,7 +147,7 @@ app.get("/compare", (req, res) => {
       } else {
         console.log("Comparion DATA", data);
       }
-      res.send(data);
+      res.send(data.FaceMatches);
     }
   );
 });
