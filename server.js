@@ -41,7 +41,7 @@ let searchParams = {
     Image: {
         S3Object: {
             Bucket: "rekit-test",
-            Name: "CE2.jpg"
+            Name: "1554000690526"
         }
     }
     
@@ -55,13 +55,13 @@ let searchParams = {
     }
    });
 
-   rekognition.searchFacesByImage(searchParams, (err,data) => {
-       if(err) {
-           console.log(err, err.stack);
-       }else{
-           console.log(data)
-       }
-   })
+//    rekognition.searchFacesByImage(searchParams, (err,data) => {
+//        if(err) {
+//            console.log(err, err.stack);
+//        }else{
+//            console.log(data)
+//        }
+//    })
 
    app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
@@ -81,10 +81,18 @@ const upload = multer({
  })
 });
 
-const singleUpload = upload.single("image");
 
-app.post('/upload', upload.array('photos', 1), function(req, res, next) {
+
+app.post('/upload', upload.single('photos', 1), function(req, res, next) {
+    rekognition.searchFacesByImage(searchParams, (err,data) => {
+        if(err) {
+            console.log(err, err.stack);
+        }else{
+            console.log(data)
+        }
+    })
     res.send("Uploaded!");
+    console.log(req.file)
   })
 // app.post("/upload", (req, res) => {
 //  console.log("hello");
