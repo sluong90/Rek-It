@@ -9,21 +9,39 @@
   </head>
   <body>
     <h2>Who are you related to?</h2>
-    <div class="pics"></div>
+    <div class="pics">
+      <img src="" height="400" type="hidden" />
+    </div>
+
     <br /><br />
     <form method="post" enctype="multipart/form-data" action="/">
       <p>
         <input type="text" name="title" placeholder="optional title" />
       </p>
 
-      <p>
-        <input type="file" name="photos" />
-      </p>
-
+      <p><input type="file" name="photos" onchange="previewFile()" /><br /></p>
       <p>
         <input type="submit" />
       </p>
     </form>
-    <script src="/server.js"></script>
+    <script>
+      function previewFile() {
+        var preview = document.querySelector("img");
+        var file = document.querySelector("input[type=file]").files[0];
+        var reader = new FileReader();
+
+        reader.addEventListener(
+          "load",
+          function() {
+            preview.src = reader.result;
+          },
+          false
+        );
+
+        if (file) {
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
   </body>
 </html>
