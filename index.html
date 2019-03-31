@@ -11,40 +11,18 @@
     <h2>Who are you related to?</h2>
     <div class="pics"></div>
     <br /><br />
-    <form
-      action="
-/upload"
-      method="post"
-    >
-      <input
-        id="file"
-        type="file"
-        onchange="previewFile()"
-        name="photo"
-        accept="image/*"
-        enctype="multipart/form-data"
-      />
-      <img src="" height="200" alt="Image preview..." />
-      <input type="submit" value="Upload File" name="submit" />
+    <form method="post" enctype="multipart/form-data" action="/upload">
+      <p>
+        <input type="text" name="title" placeholder="optional title" />
+      </p>
+
+      <p>
+        <input type="file" name="photos" />
+      </p>
+
+      <p>
+        <input type="submit" />
+      </p>
     </form>
-    <script>
-      function previewFile() {
-        var preview = document.querySelector("img");
-        var file = document.querySelector("input[type=file]").files[0];
-        var reader = new FileReader();
-
-        reader.addEventListener(
-          "load",
-          function() {
-            preview.src = reader.result;
-          },
-          false
-        );
-
-        if (file) {
-          reader.readAsDataURL(file);
-        }
-      }
-    </script>
   </body>
 </html>

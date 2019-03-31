@@ -17,7 +17,6 @@ AWS.config.update({
 const rekognition = new AWS.Rekognition();
 const s3 = new AWS.S3();
 const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080;
-const formData = new FormData();
 
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
@@ -66,28 +65,15 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/upload", (req, res) => {
-  const uploadD = multer({
-    storage: multer3({
-      s3: s3,
-      bucket: "jehaws",
-      body: req.body.photo,
-      acl: "public-read",
-      metadata: function(req, file, cb) {
-        cb(null, { fieldname: "TESTING METADATA!" });
-      },
-      key: function(req, file, cb) {
-        cb(null, Date.now().toString());
-      }
-    })
-  });
-
-  const singleUpload = uploadD.single("image");
-  // console.log(req.body.photo);
-  singleUpload(req, res, function(err) {
-    return res.json({ "image-url": req.file });
-  });
+app.post("/upload", upload.array("photos", 1), function(req, res, next) {
+  res.send("Uploaded!");
 });
+// app.post("/upload", (req, res) => {
+//  console.log("hello");
+//  singleUpload(req, res, function(err) {
+//    return res.json({ "image-url": req.file });
+//  });
+// });
 
 app.listen(PORT, () => {
   console.log("Port is listening..");
