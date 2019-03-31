@@ -83,12 +83,15 @@ const upload = multer({
 
 const singleUpload = upload.single("image");
 
-app.post("/upload", (req, res) => {
- console.log("hello");
- singleUpload(req, res, function(err) {
-   return res.json({ "image-url": req.file });
- });
-});
+app.post('/upload', upload.array('photos', 1), function(req, res, next) {
+    res.send("Uploaded!");
+  })
+// app.post("/upload", (req, res) => {
+//  console.log("hello");
+//  singleUpload(req, res, function(err) {
+//    return res.json({ "image-url": req.file });
+//  });
+// });
 
 
 

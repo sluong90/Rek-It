@@ -10,10 +10,19 @@
 <body>
     <h2>Who are you related to?</h2>
     <div class="pics"></div><br><br>
-    <form action="/upload" method="post">
-        <input type="file" name="photo" accept="image/*">
-        <input type="submit">
-      </form>
+        <form method="post" enctype="multipart/form-data" action="/upload">
+            <p>
+                <input type="text" name="title" placeholder="optional title"/>
+            </p>
+        
+            <p>
+                <input type="file" name="photos"/>
+            </p>
+        
+            <p>
+                <input type="submit"/>
+            </p>
+        </form>
      
 </body>
 </html>
