@@ -17,10 +17,12 @@ AWS.config.update({
 const rekognition = new AWS.Rekognition();
 const s3 = new AWS.S3();
 const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080;
+const formData = new FormData();
 
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
+app.use(bp.urlencoded({ extended: false }));
 
 let params = {
   CollectionId: process.env.AWS_COLLECTION_ID,
@@ -59,28 +61,29 @@ rekognition.searchFacesByImage(searchParams, (err, data) => {
     console.log(data);
   }
 });
-const upload = multer({
-  storage: multer3({
-    s3: s3,
-    bucket: "jehaws",
-    acl: "public-read",
-    metadata: function(req, file, cb) {
-      cb(null, { fieldname: "TESTING METADATA!" });
-    },
-    key: function(req, file, cb) {
-      cb(null, Date.now().toString());
-    }
-  })
-});
-
-const singleUpload = upload.single("image");
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/image", (req, res) => {
-  console.log("hello");
+app.post("/upload", (req, res) => {
+  const uploadD = multer({
+    storage: multer3({
+      s3: s3,
+      bucket: "jehaws",
+      body: req.body.photo,
+      acl: "public-read",
+      metadata: function(req, file, cb) {
+        cb(null, { fieldname: "TESTING METADATA!" });
+      },
+      key: function(req, file, cb) {
+        cb(null, Date.now().toString());
+      }
+    })
+  });
+
+  const singleUpload = uploadD.single("image");
+  // console.log(req.body.photo);
   singleUpload(req, res, function(err) {
     return res.json({ "image-url": req.file });
   });

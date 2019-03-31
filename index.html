@@ -4,10 +4,47 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
+    <title>Rek-It</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    HELLLOO!!
+    <h2>Who are you related to?</h2>
+    <div class="pics"></div>
+    <br /><br />
+    <form
+      action="
+/upload"
+      method="post"
+    >
+      <input
+        id="file"
+        type="file"
+        onchange="previewFile()"
+        name="photo"
+        accept="image/*"
+        enctype="multipart/form-data"
+      />
+      <img src="" height="200" alt="Image preview..." />
+      <input type="submit" value="Upload File" name="submit" />
+    </form>
+    <script>
+      function previewFile() {
+        var preview = document.querySelector("img");
+        var file = document.querySelector("input[type=file]").files[0];
+        var reader = new FileReader();
+
+        reader.addEventListener(
+          "load",
+          function() {
+            preview.src = reader.result;
+          },
+          false
+        );
+
+        if (file) {
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
   </body>
 </html>
