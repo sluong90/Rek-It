@@ -1,9 +1,9 @@
 body {
-    background-color: cornflowerblue
+  background-color: cornflowerblue;
 }
 
 .pics {
-    height: 500px;
-    width: 500px;
-    border: 1px solid;
+  height: 500px;
+  width: 500px;
+  border: 1px solid;
 }

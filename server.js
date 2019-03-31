@@ -1,59 +1,65 @@
 const express = require("express");
-const dotenv = require("dotenv");
-const session = require("express-session");
+const dotenv = require("dotenv").config();
 const bp = require("body-parser");
-const RedisStore = require("connect-redis")(session);
-
-//AWS initialize
 const AWS = require("aws-sdk");
 const multer = require("multer");
 const multer3 = require("multer-s3");
-var path = require('path');
+const path = require("path");
+// const handlebars = require("handlebars");
+// const hbs = require("express-handlebars")
 
 AWS.config.update({
-    region: "us-west-2",
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  region: "us-west-2",
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
 
 const rekognition = new AWS.Rekognition();
 const s3 = new AWS.S3();
-const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080
+const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080;
+let keyName;
 
 const app = express();
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
+app.use(bp.urlencoded({ extended: false }));
 
 let params = {
-    CollectionId: "rekit-test",
-    DetectionAttributes: [],
-    ExternalImageId: "CE1",
-    Image: {
-      S3Object: {
-        Bucket: "rekit-test",
-        Name: "CE1.jpg"
-      }
+  CollectionId: "rekit-test",
+  DetectionAttributes: [],
+  ExternalImageId: "CE1",
+  Image: {
+    S3Object: {
+      Bucket: "rekit-test",
+      Name: "CE1.jpg"
     }
-   };
-
-let searchParams = {
-    CollectionId: "rekit-test",
-    Image: {
-        S3Object: {
-            Bucket: "rekit-test",
-            Name: "1554000690526"
-        }
-    }
-    
+  }
 };
 
-   rekognition.indexFaces(params, (err, data) => {
-    if (err) {
-      console.log(err, err.stack); //error occurred;
-    } else {
-      console.log(data.FaceRecords[0].FaceDetail.Pose); //sucessfull response
+// let searchParams = {
+//     CollectionId: "rekit-test",
+//     Image: {
+//         S3Object: {
+//             Bucket: "rekit-test",
+//             Name: "1554000690526"
+//         }
+//     }
+//   }
+
+
+const upload = multer({
+  storage: multer3({
+    s3: s3,
+    bucket: "rekit-test",
+    acl: "public-read",
+    metadata: function(req, file, cb) {
+      cb(null, { fieldname: "TestPicture" });
+    },
+    key: function(req, file, cb) {
+      cb(null, Date.now().toString());
     }
-   });
+  })
+});
 
 //    rekognition.searchFacesByImage(searchParams, (err,data) => {
 //        if(err) {
@@ -62,38 +68,34 @@ let searchParams = {
 //            console.log(data)
 //        }
 //    })
-
-   app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html')
-   })
-
-const upload = multer({
- storage: multer3({
-   s3: s3,
-   bucket: "rekit-test",
-   acl: "public-read",
-   metadata: function(req, file, cb) {
-     cb(null, { fieldname: "TESTING METADATA!" });
-   },
-   key: function(req, file, cb) {
-     cb(null, Date.now().toString());
-   }
- })
+rekognition.indexFaces(params, (err, data) => {
+  if (err) {
+    console.log(err, err.stack); //error occurred;
+  } else {
+    console.log(data.FaceRecords[0].FaceDetail.Pose); //sucessfull response
+  }
 });
 
+// rekognition.searchFacesByImage(searchParams, (err, data) => {
+//   if (err) {
+//     console.log(err, err.stack);
+//   } else {
+//     console.log(data);
+//   }
+// });
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
-app.post('/upload', upload.single('photos', 1), function(req, res, next) {
-    rekognition.searchFacesByImage(searchParams, (err,data) => {
-        if(err) {
-            console.log(err, err.stack);
-        }else{
-            console.log(data)
-        }
-    })
-    res.send("Uploaded!");
-    console.log(req.file)
-  })
+app.post("/", upload.single("photos"), function(req, res, next) {
+  keyName = req.file.key;
+  // console.log(keyName);
+  res.redirect("/compare");
+});
+// let keyName = req.file.key.toString();
+// let keyName = "IMG_2123.jpg";
+// console.log(keyName);
 // app.post("/upload", (req, res) => {
 //  console.log("hello");
 //  singleUpload(req, res, function(err) {
@@ -101,10 +103,27 @@ app.post('/upload', upload.single('photos', 1), function(req, res, next) {
 //  });
 // });
 
-
-
-
-
+app.get("/compare", (req, res) => {
+  rekognition.searchFacesByImage(
+    {
+      CollectionId: "rekit-test",
+      Image: {
+        S3Object: {
+          Bucket: "rekit-test",
+          Name: keyName
+        }
+      }
+    },
+    (err, data) => {
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        console.log("Comparion DATA", data);
+      }
+      res.send(data);
+    }
+  );
+});
 app.listen(PORT, () => {
-    console.log("Port is listening..")
-})
+  console.log("Port is listening..");
+});
