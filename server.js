@@ -17,6 +17,7 @@ AWS.config.update({
 const rekognition = new AWS.Rekognition();
 const s3 = new AWS.S3();
 const PORT = process.env.EXPRESS_CONTAINER_PORT || 8080;
+let keyName;
 
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
@@ -26,11 +27,11 @@ app.use(bp.urlencoded({ extended: false }));
 let params = {
   CollectionId: process.env.AWS_COLLECTION_ID,
   DetectionAttributes: [],
-  ExternalImageId: "CE1",
+  ExternalImageId: "Chris",
   Image: {
     S3Object: {
       Bucket: "jehaws",
-      Name: "IMG_2123.jpg"
+      Name: "chris.jpg"
     }
   }
 };
@@ -40,10 +41,24 @@ let searchParams = {
   Image: {
     S3Object: {
       Bucket: "jehaws",
-      Name: "test1.jpg"
+      Name: "1554000853715"
     }
   }
 };
+
+const upload = multer({
+  storage: multer3({
+    s3: s3,
+    bucket: "jehaws",
+    acl: "public-read",
+    metadata: function(req, file, cb) {
+      cb(null, { fieldname: "TestPicture" });
+    },
+    key: function(req, file, cb) {
+      cb(null, Date.now().toString());
+    }
+  })
+});
 
 rekognition.indexFaces(params, (err, data) => {
   if (err) {
@@ -53,21 +68,26 @@ rekognition.indexFaces(params, (err, data) => {
   }
 });
 
-rekognition.searchFacesByImage(searchParams, (err, data) => {
-  if (err) {
-    console.log(err, err.stack);
-  } else {
-    console.log(data);
-  }
-});
+// rekognition.searchFacesByImage(searchParams, (err, data) => {
+//   if (err) {
+//     console.log(err, err.stack);
+//   } else {
+//     console.log(data);
+//   }
+// });
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/upload", upload.array("photos", 1), function(req, res, next) {
-  res.send("Uploaded!");
+app.post("/", upload.single("photos"), function(req, res, next) {
+  keyName = req.file.key;
+  // console.log(keyName);
+  res.redirect("/compare");
 });
+// let keyName = req.file.key.toString();
+// let keyName = "IMG_2123.jpg";
+// console.log(keyName);
 // app.post("/upload", (req, res) => {
 //  console.log("hello");
 //  singleUpload(req, res, function(err) {
@@ -75,6 +95,27 @@ app.post("/upload", upload.array("photos", 1), function(req, res, next) {
 //  });
 // });
 
+app.get("/compare", (req, res) => {
+  rekognition.searchFacesByImage(
+    {
+      CollectionId: process.env.AWS_COLLECTION_ID,
+      Image: {
+        S3Object: {
+          Bucket: "jehaws",
+          Name: keyName
+        }
+      }
+    },
+    (err, data) => {
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        console.log("Comparion DATA", data);
+      }
+      res.send(data);
+    }
+  );
+});
 app.listen(PORT, () => {
   console.log("Port is listening..");
 });
