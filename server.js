@@ -7,6 +7,12 @@ const multer3 = require("multer-s3");
 const path = require("path");
 // const handlebars = require("handlebars");
 // const hbs = require("express-handlebars")
+const collectionimgs = [
+  { id: "ariana.jpg", name: "ArianaG" },
+  { id: "justinB.jpg", name: "JustinB" },
+  { id: "psy.jpeg", name: "Psy" },
+  { id: "taylorS.jpg", name: "TaylorS" }
+];
 
 AWS.config.update({
   region: "us-west-2",
@@ -24,27 +30,46 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: false }));
 
-let params = {
-  CollectionId: "rekit-test",
-  DetectionAttributes: [],
-  ExternalImageId: "CE1",
-  Image: {
-    S3Object: {
-      Bucket: "rekit-test",
-      Name: "CE1.jpg"
-    }
-  }
-};
-
-// let searchParams = {
-//     CollectionId: "rekit-test",
-//     Image: {
-//         S3Object: {
-//             Bucket: "rekit-test",
-//             Name: "1554000690526"
-//         }
+// let params = {
+//   CollectionId: process.env.AWS_COLLECTION_ID,
+//   DetectionAttributes: [],
+//   ExternalImageId: "CE1",
+//   Image: {
+//     S3Object: {
+//       Bucket: "rekit-test",
+//       Name: "CE1.jpg"
 //     }
 //   }
+// };
+
+
+const indexCollection = arr => {
+  arr.forEach(x => {
+    rekognition.indexFaces(
+      {
+        CollectionId: "rekit-test",
+        DetectionAttributes: [],
+        ExternalImageId: x.name,
+        Image: {
+          S3Object: {
+            Bucket: "rekit-test",
+            Name: x.id
+          }
+        }
+      },
+      (err, data) => {
+        if (err) {
+          console.log(err, err.stack); //error occurred;
+        } else {
+          console.log(x.name); //sucessfull response
+        }
+      }
+    );
+  });
+};
+
+indexCollection(collectionimgs);
+
 
 
 const upload = multer({
@@ -61,28 +86,6 @@ const upload = multer({
   })
 });
 
-//    rekognition.searchFacesByImage(searchParams, (err,data) => {
-//        if(err) {
-//            console.log(err, err.stack);
-//        }else{
-//            console.log(data)
-//        }
-//    })
-rekognition.indexFaces(params, (err, data) => {
-  if (err) {
-    console.log(err, err.stack); //error occurred;
-  } else {
-    console.log(data.FaceRecords[0].FaceDetail.Pose); //sucessfull response
-  }
-});
-
-// rekognition.searchFacesByImage(searchParams, (err, data) => {
-//   if (err) {
-//     console.log(err, err.stack);
-//   } else {
-//     console.log(data);
-//   }
-// });
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -93,20 +96,13 @@ app.post("/", upload.single("photos"), function(req, res, next) {
   // console.log(keyName);
   res.redirect("/compare");
 });
-// let keyName = req.file.key.toString();
-// let keyName = "IMG_2123.jpg";
-// console.log(keyName);
-// app.post("/upload", (req, res) => {
-//  console.log("hello");
-//  singleUpload(req, res, function(err) {
-//    return res.json({ "image-url": req.file });
-//  });
-// });
+
 
 app.get("/compare", (req, res) => {
   rekognition.searchFacesByImage(
     {
       CollectionId: "rekit-test",
+      FaceMatchThreshold: 0,
       Image: {
         S3Object: {
           Bucket: "rekit-test",
@@ -120,7 +116,7 @@ app.get("/compare", (req, res) => {
       } else {
         console.log("Comparion DATA", data);
       }
-      res.send(data);
+      res.send(data.FaceMatches);
     }
   );
 });
