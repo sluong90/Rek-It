@@ -9,10 +9,10 @@ const ejs = require("ejs");
 // const handlebars = require("handlebars");
 // const hbs = require("express-handlebars")
 const collectionimgs = [
-  { id: "ariana.jpg", name: "ArianaG" },
-  { id: "justinB.jpg", name: "JustinB" },
-  { id: "psy.jpeg", name: "Psy" },
-  { id: "taylorS.jpg", name: "TaylorS" }
+  { id: "chris2.jpg", name: "chrisE" },
+  { id: "chrisH.jpg", name: "chrisH" },
+  { id: "constance.jpg", name: "constance" },
+  { id: "lucy.jpg", name: "lucy" }
 ];
 
 AWS.config.update({
@@ -31,7 +31,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: false }));
 
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 // let params = {
 //   CollectionId: process.env.AWS_COLLECTION_ID,
@@ -45,17 +45,16 @@ app.set('view engine', 'ejs');
 //   }
 // };
 
-
 const indexCollection = arr => {
   arr.forEach(x => {
     rekognition.indexFaces(
       {
-        CollectionId: "rekit-test",
+        CollectionId: "rekogtest",
         DetectionAttributes: [],
         ExternalImageId: x.name,
         Image: {
           S3Object: {
-            Bucket: "rekit-test",
+            Bucket: "jehaws",
             Name: x.id
           }
         }
@@ -73,12 +72,10 @@ const indexCollection = arr => {
 
 indexCollection(collectionimgs);
 
-
-
 const upload = multer({
   storage: multer3({
     s3: s3,
-    bucket: "rekit-test",
+    bucket: "jehaws",
     acl: "public-read",
     metadata: function(req, file, cb) {
       cb(null, { fieldname: "TestPicture" });
@@ -88,7 +85,6 @@ const upload = multer({
     }
   })
 });
-
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -100,31 +96,40 @@ app.post("/", upload.single("photos"), function(req, res, next) {
   res.redirect("/compare");
 });
 
-
 app.get("/compare", (req, res) => {
-
   rekognition.searchFacesByImage(
     {
-      CollectionId: "rekit-test",
+      CollectionId: "rekogtest",
       FaceMatchThreshold: 0,
       Image: {
         S3Object: {
-          Bucket: "rekit-test",
+          Bucket: "jehaws",
           Name: keyName
         }
       }
     },
     (err, data) => {
+      let resultArr = [];
       if (err) {
         console.log(err, err.stack);
       } else {
-        console.log("Comparion DATA", data);
+        console.log("Comparion DATA", data.FaceMatches[0].Face.ExternalImageId);
+        console.log(data.FaceMatches.length);
+        data.FaceMatches.forEach(x => {
+          let resultObj = {};
+          resultObj.Similarity = x.Similarity.toFixed(2) + "%";
+          resultObj.Id = x.Face.ExternalImageId;
+          console.log(resultObj);
+          resultArr.push(resultObj);
+        });
+        console.log(resultArr);
       }
-      res.render('compare.ejs', { data : JSON.stringify(data.FaceMatches) });
+
+      // res.render("compare.ejs", { data: JSON.stringify(data.FaceMatches) });
+      res.render("compare.ejs", { data: resultArr });
     }
   );
 });
-
 
 app.listen(PORT, () => {
   console.log("Port is listening..");

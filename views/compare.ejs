@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Comparison Results</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Fredoka+One|Indie+Flower|Pacifico|Sacramento" rel="stylesheet">
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Fredoka+One|Indie+Flower|Pacifico|Sacramento"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <h1 id="results">HERE ARE YOUR RESULTS:</h1>
-    <div id="data"> <%= data %> </div>
-</body>
+    <!-- <div id="data"><%= data %></div> -->
+    <% for(let i = 0; i < 4; i++) { %>
+    <h2><%= data[i].Similarity %></h1>
+    <p><%= data[i].Id %></p>
+
+    <% } %>
+  </body>
 </html>
