@@ -6,24 +6,40 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Rek-It</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Fredoka+One|Indie+Flower|Pacifico|Sacramento" rel="stylesheet">
 </head>
 <body>
-    <h2>Who are you related to?</h2>
-    <div class="pics"></div><br><br>
-        <form method="post" enctype="multipart/form-data" action="/">
-            <p>
-                <input type="text" name="title" placeholder="optional title"/>
-            </p>
-        
-            <p>
-                <input type="file" name="photos"/>
-            </p>
-        
-            <p>
-                <input type="submit"/>
-            </p>
-        </form>
-       
-     
-</body>
+    <h2 id="related">Who Are You Related To?</h2>
+    <div class="pics">
+      <img src="" height="400" type="hidden" />
+    </div>
+
+    <br /><br />
+    <form method="post" enctype="multipart/form-data" action="/">
+
+      <p><input type="file" name="photos" onchange="previewFile()" /><br /></p>
+      <p>
+        <input type="submit" />
+      </p>
+    </form>
+    <script>
+      function previewFile() {
+        var preview = document.querySelector("img");
+        var file = document.querySelector("input[type=file]").files[0];
+        var reader = new FileReader();
+
+        reader.addEventListener(
+          "load",
+          function() {
+            preview.src = reader.result;
+          },
+          false
+        );
+
+        if (file) {
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
+  </body>
 </html>

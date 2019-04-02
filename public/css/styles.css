@@ -1,10 +1,59 @@
 body {
-  background-color: cornflowerblue;
+  background-image: url(https://cdn12.picryl.com/photo/2016/12/31/pastel-blue-exotic-emotions-f85d77-1024.png);
+  background-size: cover;
+
 }
 
-.pics {
-  height: 500px;
-  width: 500px;
-  border: 1px solid;
+img {
+  height: 400px;
+  width: auto;
+  border-radius: 30px;
+  border: 3px solid white;
 }
 
+img:hover {
+  filter: grayscale(50%);
+}
+
+
+#related {
+  font-family: 'Pacifico', cursive;
+  font-size: 60px;
+  text-shadow: 3px 5px 5px white;
+}
+
+::-webkit-file-upload-button {
+  background: white;
+  border: 2px solid rgb(189, 177, 177);
+  color: palevioletred;
+  padding: 7px;
+  font-weight: bold;
+}
+
+
+input[type=submit] {
+  background: white;
+  border: 2px solid rgb(189, 177, 177);
+  color: palevioletred;
+  padding: 10px;
+  font-weight: bold;
+
+}
+
+input[type=submit]:hover{
+  background: rgb(231, 224, 224);
+  text-transform: uppercase;
+}
+
+#results {
+  font-family: 'Fredoka One', cursive;
+  font-size: 50px;
+  text-shadow: 3px 5px 5px white;
+
+}
+
+#data {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  border: 5px solid rgb(220, 215, 215);
+}

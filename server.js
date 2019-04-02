@@ -5,6 +5,7 @@ const AWS = require("aws-sdk");
 const multer = require("multer");
 const multer3 = require("multer-s3");
 const path = require("path");
+const ejs = require("ejs");
 // const handlebars = require("handlebars");
 // const hbs = require("express-handlebars")
 const collectionimgs = [
@@ -29,6 +30,8 @@ const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: false }));
+
+app.set('view engine', 'ejs');
 
 // let params = {
 //   CollectionId: process.env.AWS_COLLECTION_ID,
@@ -99,6 +102,7 @@ app.post("/", upload.single("photos"), function(req, res, next) {
 
 
 app.get("/compare", (req, res) => {
+
   rekognition.searchFacesByImage(
     {
       CollectionId: "rekit-test",
@@ -116,10 +120,12 @@ app.get("/compare", (req, res) => {
       } else {
         console.log("Comparion DATA", data);
       }
-      res.send(data.FaceMatches);
+      res.render('compare.ejs', { data : JSON.stringify(data.FaceMatches) });
     }
   );
 });
+
+
 app.listen(PORT, () => {
   console.log("Port is listening..");
 });
