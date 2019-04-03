@@ -120,8 +120,13 @@ app.get("/compare", (req, res) => {
       } else {
         console.log("Comparion DATA", data);
       }
-      res.render('compare.ejs', { data : JSON.stringify(data.FaceMatches) });
-    }
+      // for(var i=0; i < data.FaceMatches.length; i++){
+      //   console.log("TESTT", data.FaceMatches[i].Face.ExternalImageId + ":" +data.FaceMatches[i].Similarity);
+ 
+      return res.render('compare.ejs', { data : JSON.stringify(data.FaceMatches) });
+      }
+    
+  
   );
 });
 
